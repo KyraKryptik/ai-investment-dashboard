@@ -7,10 +7,46 @@ from datetime import datetime
 
 # --- Framework metadata (example entries) ---
 framework = {
-    "MSFT": {"category": "Core", "entry_price": 415, "analysts": ["Dan Ives", "Brent Thill"], "innovation": "AI Copilot", "political": "Moderate"},
-    "GOOGL": {"category": "Core", "entry_price": 160, "analysts": ["Mark Mahaney", "Brian Nowak"], "innovation": "Gemini LLM", "political": "High"},
-    "PLTR": {"category": "Speculative", "entry_price": 22, "analysts": ["Alex Zukin"], "innovation": "Defense AI", "political": "Low"},
-    "BNTX": {"category": "Biotech", "entry_price": 95, "analysts": ["Geoff Meacham"], "innovation": "Cancer Vaccines", "political": "Moderate"}
+    "MSFT": {
+        "category": "Core",
+        "entry_price": 415,
+        "analysts": ["Dan Ives", "Brent Thill"],
+        "innovation": "AI Copilot",
+        "political": "Moderate",
+        "analyst_notes": {
+            "Dan Ives": {
+                "summary": "Believes MSFT is leading in enterprise AI; expects 15% YoY growth.",
+                "rating": "Buy",
+                "target": 450
+            },
+            "Brent Thill": {
+                "summary": "Raised target to $450 citing strong Azure demand and Copilot monetization.",
+                "rating": "Buy",
+                "target": 450
+            }
+        }
+    },
+    "GOOGL": {
+        "category": "Core",
+        "entry_price": 160,
+        "analysts": ["Mark Mahaney", "Brian Nowak"],
+        "innovation": "Gemini LLM",
+        "political": "High"
+    },
+    "PLTR": {
+        "category": "Speculative",
+        "entry_price": 22,
+        "analysts": ["Alex Zukin"],
+        "innovation": "Defense AI",
+        "political": "Low"
+    },
+    "BNTX": {
+        "category": "Biotech",
+        "entry_price": 95,
+        "analysts": ["Geoff Meacham"],
+        "innovation": "Cancer Vaccines",
+        "political": "Moderate"
+    }
 }
 
 # --- Sidebar Ticker Selection ---
@@ -34,6 +70,13 @@ st.markdown(f"- **Innovation Catalyst**: {info.get('innovation', 'N/A')}")
 st.markdown(f"- **Political Sensitivity**: {info.get('political', 'N/A')}")
 st.markdown(f"- **Entry Price Target**: ${info.get('entry_price', 'N/A')}")
 st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', [])) or 'N/A'}")
+
+# --- Analyst Notes Section ---
+if "analyst_notes" in info:
+    st.markdown("### 🧠 Analyst Commentary")
+    for name, note in info["analyst_notes"].items():
+        with st.expander(f"🗣 {name} ({note['rating']}, Target: ${note['target']})"):
+            st.markdown(note["summary"])
 
 # --- Historical Price Chart and Metrics ---
 st.subheader("📈 Historical Price")
@@ -89,4 +132,3 @@ fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], name='Forecast'))
 fig.add_trace(go.Scatter(x=forecast_df['ds'], y=forecast_df['y'], name='Historical'))
 fig.update_layout(title=f"{ticker} Forecast", xaxis_title="Date", yaxis_title="Price (USD)")
 st.plotly_chart(fig)
-
