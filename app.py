@@ -50,17 +50,11 @@ st.subheader("📈 Historical Price")
 # 📈 Use "Date" as index, and plot the Close column
 st.line_chart(df.set_index("Date")[close_col])
 
-# 📌 Entry price comparison metric
 current_price = df[close_col].iloc[-1]
 entry_price = info.get("entry_price", None)
 
 if entry_price:
-    st.metric(
-        label="📌 Current vs Entry Price",
-        value=f"${current_price:.2f}",
-        delta=f"${current_price - entry_price:.2f}"
-    )
-
+    st.metric(label="📌 Current vs Entry Price", value=f"${current_price:.2f}", delta=f"${current_price - entry_price:.2f}")
 
 
 # Automatically find the correct "Close" column based on ticker
