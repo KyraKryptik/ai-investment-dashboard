@@ -31,21 +31,47 @@ framework = {
         "entry_price": 160,
         "analysts": ["Mark Mahaney", "Brian Nowak"],
         "innovation": "Gemini LLM",
-        "political": "High"
+        "political": "High",
+        "analyst_notes": {
+            "Mark Mahaney": {
+                "summary": "Highlights Google's AI strength and YouTube monetization growth.",
+                "rating": "Buy",
+                "target": 180
+            },
+            "Brian Nowak": {
+                "summary": "Expects strong ad revenue recovery and Gemini rollout upside.",
+                "rating": "Overweight",
+                "target": 185
+            }
+        }
     },
     "PLTR": {
         "category": "Speculative",
         "entry_price": 22,
         "analysts": ["Alex Zukin"],
         "innovation": "Defense AI",
-        "political": "Low"
+        "political": "Low",
+        "analyst_notes": {
+            "Alex Zukin": {
+                "summary": "Cites Palantir's expanding defense contracts and AI platform Palantir AIP.",
+                "rating": "Hold",
+                "target": 25
+            }
+        }
     },
     "BNTX": {
         "category": "Biotech",
         "entry_price": 95,
         "analysts": ["Geoff Meacham"],
         "innovation": "Cancer Vaccines",
-        "political": "Moderate"
+        "political": "Moderate",
+        "analyst_notes": {
+            "Geoff Meacham": {
+                "summary": "Notes BioNTech's oncology pipeline and mRNA platform diversification.",
+                "rating": "Buy",
+                "target": 110
+            }
+        }
     }
 }
 
@@ -87,7 +113,7 @@ st.markdown(f"- **Forecasted Price (6 months)**: ${forecast_price:.2f}")
 st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', [])) or 'N/A'}")
 
 # --- Analyst Notes Section ---
-if "analyst_notes" in info:
+if "analyst_notes" in info and isinstance(info["analyst_notes"], dict):
     st.markdown("### 🧠 Analyst Commentary")
     for name, note in info["analyst_notes"].items():
         with st.expander(f"🗣 {name} ({note['rating']}, Target: ${note['target']})"):
