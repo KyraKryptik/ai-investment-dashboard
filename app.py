@@ -24,7 +24,13 @@ st.write("Data columns:", df.columns.tolist())
 
 
 st.subheader("Historical Price")
-st.line_chart(df[['Date', 'Close']].set_index('Date'))
+
+# Automatically find the correct "Close" column based on ticker
+close_col = [col for col in df.columns if "Close" in col][0]
+
+# Plot the closing price line chart
+st.line_chart(df.set_index("Date")[close_col])
+
 
 # Prepare for forecasting
 df_train = df[['Date', 'Close']].rename(columns={"Date": "ds", "Close": "y"})
