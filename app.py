@@ -89,15 +89,75 @@ watchlist = [
     {"ticker": "MRVL", "name": "Marvell", "sector": "Semis", "ytd": "-32%", "forecast": "Recovery", "catalyst": "Underpriced AI infra", "analyst": "Barron's", "source": "https://www.barrons.com/articles/marvell-technology-ai-stock-turnaround"}
 ]
 
-# The rest of the app logic remains unchanged.
-# Analyst expander updated:
-# ...
+# ----------------------- MAIN APP LOGIC -----------------------
+
+# --- Sidebar Ticker Selection ---
+ticker = st.selectbox("Choose a stock ticker", list(framework.keys()))
+info = framework[ticker]
+
+# --- Download stock data ---
+df = yf.download(ticker, period="2y", group_by='ticker')
+
+# Flatten multilevel columns if needed
+if isinstance(df.columns, pd.MultiIndex):
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+
+df = df.reset_index()
+close_col = [col for col in df.columns if "Close" in col][0]
+current_price = df[close_col].iloc[-1]
+
+# --- Evaluation Summary ---
+st.markdown(f"### 📊 Evaluation Summary for `{ticker}`")
+st.markdown(f"- **Category**: {info.get('category')}")
+st.markdown(f"- **Innovation Catalyst**: {info.get('innovation')}")
+st.markdown(f"- **Political Sensitivity**: {info.get('political')}")
+st.markdown(f"- **Entry Price Target**: ${info.get('entry_price')}")
+st.markdown(f"- **Current Price**: ${current_price:.2f}")
+st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', []))}")
+
+# --- Analyst Commentary Section ---
+if "analyst_notes" in info:
+    st.markdown("### 🧠 Analyst Commentary")
+    for name, note in info["analyst_notes"].items():
         with st.expander(f"🗣 {name} ({note['rating']}, Target: ${note['target']})"):
             st.markdown(note["summary"])
             st.markdown(f"[🔗 Source]({note['source']})")
 
-# And Watchlist expander:
-# ...
+# --- Historical Price ---
+st.subheader("📈 Historical Price")
+st.line_chart(df.set_index("Date")[close_col])
+
+entry_price = info.get("entry_price")
+delta_pct = ((current_price - entry_price) / entry_price) * 100
+st.metric(label="📌 Current vs Entry Price", value=f"${current_price:.2f}", delta=f"{delta_pct:.2f}%")
+
+# --- Optional Date Range Selector ---
+st.subheader("⏳ Interactive Time Range")
+date_range = st.slider("Select time window", min_value=df["Date"].min().date(), max_value=df["Date"].max().date(), value=(df["Date"].min().date(), df["Date"].max().date()))
+df_filtered = df[(df["Date"] >= pd.to_datetime(date_range[0])) & (df["Date"] <= pd.to_datetime(date_range[1]))]
+st.line_chart(df_filtered.set_index("Date")[close_col])
+
+# --- Forecast with Prophet ---
+st.subheader("🔮 Price Forecast")
+df_train = df[["Date", close_col]].rename(columns={"Date": "ds", close_col: "y"})
+model = Prophet(daily_seasonality=True)
+model.fit(df_train)
+future = model.make_future_dataframe(periods=180)
+forecast = model.predict(future)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], name='Forecast'))
+fig.add_trace(go.Scatter(x=df_train['ds'], y=df_train['y'], name='Historical'))
+fig.update_layout(title=f"{ticker} Forecast", xaxis_title="Date", yaxis_title="Price (USD)")
+st.plotly_chart(fig)
+
+# --- Watchlist Section ---
+st.subheader("📋 Top Growth Forecast Watchlist")
+st.markdown("These stocks have the highest momentum or upside into 2025:")
+
+for stock in watchlist:
+    with st.expander(f"{stock['name']} ({stock['ticker']}) - {stock['sector']}"):
+        st.markdown(f"- **YTD Performance**: {stock['ytd']}")
         st.markdown(f"- **Forecast Target**: {stock['forecast']} ({stock['analyst']})")
         st.markdown(f"- **Catalyst**: {stock['catalyst']}")
         st.markdown(f"[🔎 Source]({stock['source']})")
