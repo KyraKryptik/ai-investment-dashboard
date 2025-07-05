@@ -106,6 +106,14 @@ df = df.reset_index()
 close_col = [col for col in df.columns if "Close" in col][0]
 current_price = df[close_col].iloc[-1]
 
+# --- Forecast with Prophet ---
+df_train = df[["Date", close_col]].rename(columns={"Date": "ds", close_col: "y"})
+model = Prophet(daily_seasonality=True)
+model.fit(df_train)
+future = model.make_future_dataframe(periods=180)
+forecast = model.predict(future)
+forecast_price = forecast['yhat'].iloc[-1]
+
 # --- Evaluation Summary ---
 st.markdown(f"### 📊 Evaluation Summary for `{ticker}`")
 st.markdown(f"- **Category**: {info.get('category')}")
@@ -113,6 +121,7 @@ st.markdown(f"- **Innovation Catalyst**: {info.get('innovation')}")
 st.markdown(f"- **Political Sensitivity**: {info.get('political')}")
 st.markdown(f"- **Entry Price Target**: ${info.get('entry_price')}")
 st.markdown(f"- **Current Price**: ${current_price:.2f}")
+st.markdown(f"- **Forecast Price (6mo)**: ${forecast_price:.2f}")
 st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', []))}")
 
 # --- Analyst Commentary Section ---
@@ -137,14 +146,8 @@ date_range = st.slider("Select time window", min_value=df["Date"].min().date(), 
 df_filtered = df[(df["Date"] >= pd.to_datetime(date_range[0])) & (df["Date"] <= pd.to_datetime(date_range[1]))]
 st.line_chart(df_filtered.set_index("Date")[close_col])
 
-# --- Forecast with Prophet ---
+# --- Forecast Plot ---
 st.subheader("🔮 Price Forecast")
-df_train = df[["Date", close_col]].rename(columns={"Date": "ds", close_col: "y"})
-model = Prophet(daily_seasonality=True)
-model.fit(df_train)
-future = model.make_future_dataframe(periods=180)
-forecast = model.predict(future)
-
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], name='Forecast'))
 fig.add_trace(go.Scatter(x=df_train['ds'], y=df_train['y'], name='Historical'))
