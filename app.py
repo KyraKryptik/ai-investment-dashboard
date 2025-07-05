@@ -3,6 +3,14 @@ import yfinance as yf
 import pandas as pd
 from prophet import Prophet
 import plotly.graph_objs as go
+import datetime
+
+# Define framework info
+framework = {
+    "MSFT": {"category": "Core", "entry_price": 415, "analysts": ["Dan Ives 🚀", "Brent Thill"], "innovation": "AI Copilot", "political": "Moderate (Regulation)"},
+    "GOOGL": {"category": "Core", "entry_price": 160, "analysts": ["Mark Mahaney", "Brian Nowak"], "innovation": "Gemini LLM", "political": "High (AI policy)"},
+    # Add others as needed...
+}
 
 st.title("📈 AI Investment Dashboard")
 
