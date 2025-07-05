@@ -12,6 +12,7 @@ ticker = st.selectbox("Choose a stock ticker", ["MSFT", "GOOGL", "AMZN", "PLTR",
 # Load data
 df = yf.download(ticker, period="2y")
 df = df.reset_index()
+st.write("Data columns:", df.columns.tolist())
 
 st.subheader("Historical Price")
 st.line_chart(df[['Date', 'Close']].set_index('Date'))
