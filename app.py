@@ -33,7 +33,8 @@ st.line_chart(df.set_index("Date")[close_col])
 
 
 # Prepare for forecasting
-df_train = df[['Date', 'Close']].rename(columns={"Date": "ds", "Close": "y"})
+close_col = [col for col in df.columns if "Close" in col][0]
+df_train = df[['Date', close_col]].rename(columns={"Date": "ds", close_col: "y"})
 
 model = Prophet(daily_seasonality=True)
 model.fit(df_train)
