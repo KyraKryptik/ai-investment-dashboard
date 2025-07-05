@@ -63,12 +63,27 @@ if isinstance(df.columns, pd.MultiIndex):
 # Reset index to bring Date into column
 df = df.reset_index()
 
+# --- Historical Close Price ---
+close_col = [col for col in df.columns if "Close" in col][0]
+current_price = df[close_col].iloc[-1]
+
 # --- Evaluation Summary Card ---
 st.markdown(f"### 📊 Evaluation Summary for `{ticker}`")
 st.markdown(f"- **Category**: {info.get('category', 'N/A')}")
 st.markdown(f"- **Innovation Catalyst**: {info.get('innovation', 'N/A')}")
 st.markdown(f"- **Political Sensitivity**: {info.get('political', 'N/A')}")
 st.markdown(f"- **Entry Price Target**: ${info.get('entry_price', 'N/A')}")
+st.markdown(f"- **Current Price**: ${current_price:.2f}")
+
+# --- Forecasting with Prophet (for Forecast Price) ---
+forecast_df = df[["Date", close_col]].rename(columns={"Date": "ds", close_col: "y"})
+model = Prophet(daily_seasonality=True)
+model.fit(forecast_df)
+future = model.make_future_dataframe(periods=180)
+forecast = model.predict(future)
+forecast_price = forecast['yhat'].iloc[-1]
+st.markdown(f"- **Forecasted Price (6 months)**: ${forecast_price:.2f}")
+
 st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', [])) or 'N/A'}")
 
 # --- Analyst Notes Section ---
@@ -81,14 +96,11 @@ if "analyst_notes" in info:
 # --- Historical Price Chart and Metrics ---
 st.subheader("📈 Historical Price")
 
-close_col = [col for col in df.columns if "Close" in col][0]
-current_price = df[close_col].iloc[-1]
-entry_price = info.get("entry_price", None)
-
 # Plot full historical chart
 st.line_chart(df.set_index("Date")[close_col])
 
 # Entry price delta metric
+entry_price = info.get("entry_price", None)
 if entry_price:
     delta_pct = ((current_price - entry_price) / entry_price) * 100
     st.metric(
@@ -114,17 +126,8 @@ date_range = st.slider(
 df_filtered = df[(df["Date"] >= pd.to_datetime(date_range[0])) & (df["Date"] <= pd.to_datetime(date_range[1]))]
 st.line_chart(df_filtered.set_index("Date")[close_col])
 
-# --- Forecasting with Prophet ---
+# --- Forecast Plot ---
 st.subheader("🔮 Price Forecast")
-
-# Prepare data for forecasting
-forecast_df = df[["Date", close_col]].rename(columns={"Date": "ds", close_col: "y"})
-
-# Fit and forecast
-model = Prophet(daily_seasonality=True)
-model.fit(forecast_df)
-future = model.make_future_dataframe(periods=180)
-forecast = model.predict(future)
 
 # Plot forecast
 fig = go.Figure()
