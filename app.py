@@ -20,8 +20,8 @@ if isinstance(df.columns, pd.MultiIndex):
 df = df.reset_index()
 
 # Show column names for debugging
-st.write("Data columns:", df.columns.tolist())
-
+with st.expander("🛠 Show raw column names (dev only)"):
+    st.write(df.columns.tolist())
 
 st.subheader("Historical Price")
 
