@@ -17,6 +17,19 @@ st.title("📈 AI Investment Dashboard")
 # Ticker selection
 ticker = st.selectbox("Choose a stock ticker", ["MSFT", "GOOGL", "AMZN", "PLTR", "ASML", "BNTX"])
 
+# Pull evaluation info from framework dictionary
+info = framework.get(ticker, {})
+
+# Display evaluation summary
+st.markdown(f"### 📊 Evaluation Summary for `{ticker}`")
+
+# Safely display each value (with fallback if missing)
+st.markdown(f"- **Category**: {info.get('category', 'N/A')}")
+st.markdown(f"- **Innovation Catalyst**: {info.get('innovation', 'N/A')}")
+st.markdown(f"- **Political Sensitivity**: {info.get('political', 'N/A')}")
+st.markdown(f"- **Entry Price Target**: ${info.get('entry_price', 'N/A')}")
+st.markdown(f"- **Top Analysts**: {', '.join(info.get('analysts', [])) or 'N/A'}")
+
 # Load data
 df = yf.download(ticker, period="2y", group_by='ticker')
 
@@ -31,7 +44,24 @@ df = df.reset_index()
 with st.expander("🛠 Show raw column names (dev only)"):
     st.write(df.columns.tolist())
 
-st.subheader("Historical Price")
+# 🟦 Historical Price Chart Section
+st.subheader("📈 Historical Price")
+
+# 📈 Use "Date" as index, and plot the Close column
+st.line_chart(df.set_index("Date")[close_col])
+
+# 📌 Entry price comparison metric
+current_price = df[close_col].iloc[-1]
+entry_price = info.get("entry_price", None)
+
+if entry_price:
+    st.metric(
+        label="📌 Current vs Entry Price",
+        value=f"${current_price:.2f}",
+        delta=f"${current_price - entry_price:.2f}"
+    )
+
+
 
 # Automatically find the correct "Close" column based on ticker
 close_col = [col for col in df.columns if "Close" in col][0]
