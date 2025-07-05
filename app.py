@@ -10,9 +10,18 @@ st.title("📈 AI Investment Dashboard")
 ticker = st.selectbox("Choose a stock ticker", ["MSFT", "GOOGL", "AMZN", "PLTR", "ASML", "BNTX"])
 
 # Load data
-df = yf.download(ticker, period="2y")
+df = yf.download(ticker, period="2y", group_by='ticker')
+
+# Flatten multi-level column headers if present
+if isinstance(df.columns, pd.MultiIndex):
+    df.columns = [' '.join(col).strip() for col in df.columns.values]
+
+# Reset index to make "Date" a column
 df = df.reset_index()
+
+# Show column names for debugging
 st.write("Data columns:", df.columns.tolist())
+
 
 st.subheader("Historical Price")
 st.line_chart(df[['Date', 'Close']].set_index('Date'))
